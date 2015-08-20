@@ -1,0 +1,52 @@
+BEGIN;
+BEGIN
+select
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from
+	(
+		select
+			substr(c_phone, 1, 2) as cntrycode,
+			c_acctbal
+		from
+			customer
+		where
+			substr(c_phone, 1, 2) in
+				('34', '19', '28', '27', '24', '23', '14')
+			and c_acctbal > (
+				select
+					avg(c_acctbal)
+				from
+					customer
+				where
+					c_acctbal > 0.00
+					and substr(c_phone, 1, 2) in
+						('34', '19', '28', '27', '24', '23', '14')
+			)
+			and not exists (
+				select
+					*
+				from
+					orders
+				where
+					o_custkey = c_custkey
+			)
+	) as vip
+group by
+	cntrycode
+order by
+	cntrycode;
+ cntrycode | numcust | totacctbal  
+-----------+---------+-------------
+ 14        |   91468 | 6.85867e+08
+ 19        |   90898 | 6.81876e+08
+ 23        |   90368 | 6.77721e+08
+ 24        |   90649 | 6.80099e+08
+ 27        |   90944 | 6.81885e+08
+ 28        |   90945 | 6.81778e+08
+ 34        |   91142 |  6.8296e+08
+(7 rows)
+
+COMMIT;
+COMMIT

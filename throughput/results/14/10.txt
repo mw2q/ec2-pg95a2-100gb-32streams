@@ -1,0 +1,60 @@
+BEGIN;
+BEGIN
+select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1993-11-01'
+	and o_orderdate < cast(date '1993-11-01' + interval '3 month' as date)
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20;
+ c_custkey |       c_name       |     revenue      | c_acctbal |          n_name           |                c_address                 |     c_phone     |                                                   c_comment                                                   
+-----------+--------------------+------------------+-----------+---------------------------+------------------------------------------+-----------------+---------------------------------------------------------------------------------------------------------------
+   5466535 | Customer#005466535 | 905179.756898362 |   1652.89 | CHINA                     | EJtYBDt2anisJcdLi                        | 28-873-365-1708 | lent deposits use around the carefully even platel
+    778174 | Customer#000778174 | 896424.321286292 |    979.88 | PERU                      | uW9eGnlthiV                              | 27-185-119-6454 | ing to the quickly ironic packages. final, pending requests after the unusual, pending deposits eat blithely 
+   6607534 | Customer#006607534 | 859963.195138309 |   1906.22 | UNITED KINGDOM            | t4EYuBkdHdYvpukAKiVVPfagynwWN1qTHD       | 33-781-897-1083 | endencies are carefully even deposits. carefully bold excus
+   9070909 | Customer#009070909 | 809971.884985639 |   -184.71 | FRANCE                    | CteM3dM,cPrMfZ0aDUvqS9t                  | 16-802-303-2636 | en accounts cajole after the regular acco
+  14692450 | Customer#014692450 |  805070.63718452 |   9663.71 | VIETNAM                   | ZxNJPn6PnGInMNVss                        | 31-388-466-4524 |  requests above the careful, pending attainments wake fluf
+  10781974 | Customer#010781974 |  801735.51473618 |   5079.77 | ROMANIA                   | Cv2p,eRTt8C  WwJV61XTYA,6T4obB           | 29-651-722-6239 | egular notornis. requests wake alongsid
+  14844871 | Customer#014844871 | 797264.917526832 |   5627.27 | RUSSIA                    | hFg3wxh8cTNtIgUFCCjjCCr95JRVOKQ8S        | 32-986-957-4184 | ake slyly quickly silent accounts. fluffily unusual dependencies
+   3929032 | Customer#003929032 | 791512.954041387 |   -193.74 | VIETNAM                   | F1VtocD5MlGgWXdyAlJVBQLBuF99zldq3T,o8k7p | 31-404-431-9041 | ide of the blithely even platelets cajole according to the final, even packages. furio
+   9684325 | Customer#009684325 | 791412.196520193 |   4969.55 | CHINA                     | w5eFxho5pmI,zjlyCFh4cnMeWy605 shNtt      | 28-586-982-6342 | ages sleep furiously ironic theodolites. bold theodolites about t
+   5657464 | Customer#005657464 |  790101.12104991 |   1633.27 | FRANCE                    | phT7d gragwTmXxyqctMUTaCEwf              | 16-597-350-2718 | ages unwind blithely silent theodolites. caref
+  14941408 | Customer#014941408 | 787750.493084435 |   9964.08 | GERMANY                   | RTYFdn2nyefYDfx3KCciSuNmLrt5zLMYLJ       | 17-866-968-2010 | quickly ruthless packages. grouches integrate. fluffily re
+   8768890 | Customer#008768890 | 785171.171656714 |   -345.56 | IRAQ                      | iCkr4tFj2zYBJUN0,PZlO2                   | 21-814-276-2857 | he requests. furiously even accounts mold slyly at the carefully regular packages. furiou
+   4800862 | Customer#004800862 | 779169.944124349 |   4057.82 | BRAZIL                    | PsORCSBg1E53aL9tzFu5Cs2                  | 12-156-712-3913 | dolites. furiously unusual deposits poach spec
+  10653748 | Customer#010653748 | 778661.222768952 |   6335.74 | IRAQ                      | FF03U2F,z5lW                             | 21-947-416-2437 | inal, pending pinto beans will have to x-ray quickly
+   2415412 | Customer#002415412 |   778095.4378553 |    211.92 | ARGENTINA                 | xF6d,cW4haNqf azfZ                       | 11-733-586-7081 | ealms poach carefully regular, final packages. even
+  11246182 | Customer#011246182 | 777057.302806037 |    351.64 | JAPAN                     | DUkn8X1AMAtVsOZejVIUFPcE7GakBkb9YUpg     | 22-578-372-1691 | t sometimes about the carefully even packages. furiously special de
+   2338768 | Customer#002338768 | 774688.423764857 |      2458 | IRAQ                      | J9FEblwqXDwWukh                          | 21-808-611-2114 | usly. blithely special pinto beans caj
+  11235439 | Customer#011235439 |  771865.18283135 |    946.95 | UNITED STATES             | ikPKvwYRj6aDe69aBfG2ieGcFgHNFBvB,AKXMgx  | 34-569-549-9215 | ronic foxes. blithely ironic accounts are blithely. furiously regular theodolites boost
+   4050460 | Customer#004050460 | 771770.601711765 |   5516.61 | UNITED KINGDOM            | p4C35k8L8SIBknrhDZ                       | 33-621-682-6010 | al deposits cajole carefully final requests. furiously even accounts sublate blithely along the 
+   5213797 | Customer#005213797 | 770603.439586386 |   -120.13 | KENYA                     | OuhJMv2HLJyS,XOIAdDnCUB81vHuvWFSO        | 24-100-565-1751 |  thinly. quickly ironic packages haggle after the ironic foxes. fluffily express noto
+(20 rows)
+
+COMMIT;
+COMMIT

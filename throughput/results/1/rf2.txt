@@ -1,0 +1,11 @@
+Wed Aug 19 11:44:31 EDT 2015: Stream 3 : Starting Refresh Stream 2...
+BEGIN
+CREATE TABLE
+COPY 150000
+CREATE INDEX
+ANALYZE
+DELETE 600124
+DELETE 150000
+COMMIT
+Wed Aug 19 11:56:37 EDT 2015: Stream 3 : Refresh Stream 2 completed.
+Stream 3 : Elapsed time for Refresh Stream 2 : 726 seconds

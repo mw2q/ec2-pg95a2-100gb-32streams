@@ -1,0 +1,79 @@
+BEGIN;
+BEGIN
+EXPLAIN
+select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'VIETNAM' and n2.n_name = 'INDIA')
+				or (n1.n_name = 'INDIA' and n2.n_name = 'VIETNAM')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) as shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year;
+                                                                               QUERY PLAN                                                                                
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=23772656.89..23772664.39 rows=3000 width=64)
+   Sort Key: n1.n_name, n2.n_name, (date_part('year'::text, (lineitem.l_shipdate)::timestamp without time zone))
+   ->  HashAggregate  (cost=23772438.62..23772483.62 rows=3000 width=64)
+         Group Key: n1.n_name, n2.n_name, date_part('year'::text, (lineitem.l_shipdate)::timestamp without time zone)
+         ->  Hash Join  (cost=9312908.21..23763786.58 rows=576803 width=64)
+               Hash Cond: (lineitem.l_orderkey = orders.o_orderkey)
+               Join Filter: (((n1.n_name = 'VIETNAM'::bpchar) AND (n2.n_name = 'INDIA'::bpchar)) OR ((n1.n_name = 'INDIA'::bpchar) AND (n2.n_name = 'VIETNAM'::bpchar)))
+               ->  Hash Join  (cost=3856659.71..18039925.44 rows=13860137 width=42)
+                     Hash Cond: (lineitem.l_suppkey = supplier.s_suppkey)
+                     ->  Bitmap Heap Scan on lineitem  (cost=3819312.31..17188603.60 rows=180099486 width=20)
+                           Recheck Cond: ((l_shipdate >= '1995-01-01'::date) AND (l_shipdate <= '1996-12-31'::date))
+                           ->  Bitmap Index Scan on lineitem_l_shipdate_l_suppkey__idx  (cost=0.00..3774287.44 rows=180099486 width=0)
+                                 Index Cond: ((l_shipdate >= '1995-01-01'::date) AND (l_shipdate <= '1996-12-31'::date))
+                     ->  Hash  (cost=36347.40..36347.40 rows=80000 width=30)
+                           ->  Hash Join  (cost=1.40..36347.40 rows=80000 width=30)
+                                 Hash Cond: (supplier.s_nationkey = n1.n_nationkey)
+                                 ->  Seq Scan on supplier  (cost=0.00..31796.00 rows=1000000 width=8)
+                                 ->  Hash  (cost=1.38..1.38 rows=2 width=30)
+                                       ->  Seq Scan on nation n1  (cost=0.00..1.38 rows=2 width=30)
+                                             Filter: ((n_name = 'VIETNAM'::bpchar) OR (n_name = 'INDIA'::bpchar))
+               ->  Hash  (cost=5306098.61..5306098.61 rows=12011992 width=30)
+                     ->  Hash Join  (cost=586015.55..5306098.61 rows=12011992 width=30)
+                           Hash Cond: (orders.o_custkey = customer.c_custkey)
+                           ->  Seq Scan on orders  (cost=0.00..4036900.99 rows=150149899 width=8)
+                           ->  Hash  (cost=571015.53..571015.53 rows=1200001 width=30)
+                                 ->  Hash Join  (cost=1.40..571015.53 rows=1200001 width=30)
+                                       Hash Cond: (customer.c_nationkey = n2.n_nationkey)
+                                       ->  Seq Scan on customer  (cost=0.00..502764.09 rows=15000009 width=8)
+                                       ->  Hash  (cost=1.38..1.38 rows=2 width=30)
+                                             ->  Seq Scan on nation n2  (cost=0.00..1.38 rows=2 width=30)
+                                                   Filter: ((n_name = 'INDIA'::bpchar) OR (n_name = 'VIETNAM'::bpchar))
+(31 rows)
+
+COMMIT;
+COMMIT

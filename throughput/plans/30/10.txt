@@ -1,0 +1,65 @@
+BEGIN;
+BEGIN
+EXPLAIN
+select
+	c_custkey,
+	c_name,
+	sum(l_extendedprice * (1 - l_discount)) as revenue,
+	c_acctbal,
+	n_name,
+	c_address,
+	c_phone,
+	c_comment
+from
+	customer,
+	orders,
+	lineitem,
+	nation
+where
+	c_custkey = o_custkey
+	and l_orderkey = o_orderkey
+	and o_orderdate >= date '1994-02-01'
+	and o_orderdate < cast(date '1994-02-01' + interval '3 month' as date)
+	and l_returnflag = 'R'
+	and c_nationkey = n_nationkey
+group by
+	c_custkey,
+	c_name,
+	c_acctbal,
+	c_phone,
+	n_name,
+	c_address,
+	c_comment
+order by
+	revenue desc
+LIMIT 20;
+                                                                           QUERY PLAN                                                                           
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=13776049.65..13776049.70 rows=20 width=175)
+   ->  Sort  (cost=13776049.65..13789806.93 rows=5502913 width=175)
+         Sort Key: (sum((lineitem.l_extendedprice * ('1'::double precision - lineitem.l_discount)))) DESC
+         ->  GroupAggregate  (cost=13423259.88..13629619.11 rows=5502913 width=175)
+               Group Key: customer.c_custkey, customer.c_name, customer.c_acctbal, customer.c_phone, nation.n_name, customer.c_address, customer.c_comment
+               ->  Sort  (cost=13423259.88..13437017.16 rows=5502913 width=175)
+                     Sort Key: customer.c_custkey, customer.c_name, customer.c_acctbal, customer.c_phone, nation.n_name, customer.c_address, customer.c_comment
+                     ->  Hash Join  (cost=4368622.18..12336938.73 rows=5502913 width=175)
+                           Hash Cond: (customer.c_nationkey = nation.n_nationkey)
+                           ->  Hash Join  (cost=4368620.61..12261272.11 rows=5502913 width=153)
+                                 Hash Cond: (orders.o_custkey = customer.c_custkey)
+                                 ->  Merge Join  (cost=3356090.41..10700769.88 rows=5502913 width=12)
+                                       Merge Cond: (orders.o_orderkey = lineitem.l_orderkey)
+                                       ->  Sort  (cost=3355385.46..3369211.95 rows=5530597 width=8)
+                                             Sort Key: orders.o_orderkey
+                                             ->  Bitmap Heap Scan on orders  (cost=117625.19..2735986.14 rows=5530597 width=8)
+                                                   Recheck Cond: ((o_orderdate >= '1994-02-01'::date) AND (o_orderdate < '1994-05-01'::date))
+                                                   ->  Bitmap Index Scan on orders_o_orderdate_o_orderkey_idx  (cost=0.00..116242.54 rows=5530597 width=0)
+                                                         Index Cond: ((o_orderdate >= '1994-02-01'::date) AND (o_orderdate < '1994-05-01'::date))
+                                       ->  Index Scan using lineitem_l_orderkey_idx_l_returnflag on lineitem  (cost=0.57..6889498.98 rows=149398317 width=12)
+                                 ->  Hash  (cost=502764.09..502764.09 rows=15000009 width=145)
+                                       ->  Seq Scan on customer  (cost=0.00..502764.09 rows=15000009 width=145)
+                           ->  Hash  (cost=1.25..1.25 rows=25 width=30)
+                                 ->  Seq Scan on nation  (cost=0.00..1.25 rows=25 width=30)
+(24 rows)
+
+COMMIT;
+COMMIT
